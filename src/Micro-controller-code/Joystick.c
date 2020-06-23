@@ -80,7 +80,7 @@ int main(void)
 
 	//WILL CHANGE//
 	init_display_controller();
-	init_display_laptimes();
+	//init_display_laptimes();
 
 
     os_add_task( collect_delta,   500, 1);

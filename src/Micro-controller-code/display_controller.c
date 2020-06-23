@@ -5,9 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define NUMBER_OF_PAGES
-#define DISPLAY_MODE_LAPTIMES 0
-#define DISPLAY_MODE_TYRE_TEMPERATURES 1
+#define NUMBER_OF_PAGES 3
+#define DISPLAY_MODE_BLANK 0
+#define AC_DISPLAY_MODE_LAPTIMES 1
+#define AC_DISPLAY_MODE_TYRE_TEMPERATURES 2
 
 #define MAX_MINUTES_101 6000000
 #define TEN_MINUTES 600000
@@ -32,10 +33,10 @@ void display_laptimes(void);
 char* milli_to_string(uint32_t time);
 
 char* delta_string(int16_t delta);
-void draw_delta(int16_t delta);
-void draw_laptime_current(char* str, uint32_t milli);
-void draw_laptime_best(char* str, uint32_t milli);
-void draw_laptime(char* best_string, int prev_length, int new_length, char* str, int y, uint32_t milli);
+void draw_delta(int16_t delta, bool forceDraw);
+void draw_laptime_current(char* str, uint32_t milli, bool forceDraw);
+void draw_laptime_best(char* str, uint32_t milli, bool forceDraw);
+void draw_laptime(char* best_string, int prev_length, int new_length, char* str, int y, uint32_t milli, bool forceDraw);
 
 void receive_packet(const uint8_t* ReportData)
 {
@@ -85,7 +86,6 @@ void init_display_controller(void)
     //we will change this..
     acData = malloc(sizeof(ACData));
     acTyreData = malloc(sizeof(ACTyreData));
-    display_mode = DISPLAY_MODE_LAPTIMES;
 
     os_add_task(refresh_display,40,1);
     os_add_task(collect_switch_presses, 80, 1);
@@ -95,23 +95,52 @@ int collect_switch_presses(int state)
 {
     if (get_switch_press(_BV(SWW)))
     {
-        
+        if (display_mode > 0)
+            display_mode--;
     }
     
     if (get_switch_press(_BV(SWE)))
     {
-        
+        //only change page if we're not on final page
+        if (display_mode < (NUMBER_OF_PAGES - 1))
+            display_mode++;
     }
 }
 
 int refresh_display(int state)
 {
+    //Check if display mode has changed
+    static uint8_t current_display_mode;
+    if (display_mode != current_display_mode)
+    {
+        //Then we need to switch displays
+        switch (display_mode)
+        {
+            case DISPLAY_MODE_BLANK:
+                clear_screen();
+                break;
+            case AC_DISPLAY_MODE_LAPTIMES: 
+                init_display_laptimes();
+                break;
+            case AC_DISPLAY_MODE_TYRE_TEMPERATURES: 
+                clear_screen();
+                break;
+            default : 
+                break;
+        }
+
+
+        //Finally update current_display_mode to reflect change
+        current_display_mode = display_mode;
+    }
+
+    //Display is in correct mode so now display data
     switch(display_mode)
     {
-        case DISPLAY_MODE_LAPTIMES : 
+        case AC_DISPLAY_MODE_LAPTIMES : 
             display_laptimes();
             break;
-        case DISPLAY_MODE_TYRE_TEMPERATURES :
+        case AC_DISPLAY_MODE_TYRE_TEMPERATURES :
             break;
         default:
             break;
@@ -129,42 +158,43 @@ void init_display_laptimes(void)
 
     display_string_font("Best", FONT_UNISPACE_14, 10, 53);
     display_string_font("Current", FONT_UNISPACE_14, 10, 125);
+    //clear_display_laptimes();
     clear_display_laptimes();
 }
 
 void clear_display_laptimes(void)
 {
-    draw_laptime_best("0:00.00", 0);
-    draw_laptime_current("0:00.00", 0);
-    draw_delta(0);
+    draw_laptime_best("0:00.00", 0, true);
+    draw_laptime_current("0:00.00", 0, true);
+    draw_delta(0, true);
 }
 
-void draw_laptime_best(char* str, uint32_t milli)
+void draw_laptime_best(char* str, uint32_t milli, bool forceDraw)
 {
     static char best_string[10];
     static int prev_length;
     uint8_t new_length = (milli < TEN_MINUTES) ? 7 : 8;
 
-    draw_laptime(best_string, prev_length, new_length, str, 15, milli);
+    draw_laptime(best_string, prev_length, new_length, str, 15, milli, forceDraw);
 
     strcpy(best_string, str);
     prev_length = new_length;
 }
 
-void draw_laptime_current(char* str, uint32_t milli)
+void draw_laptime_current(char* str, uint32_t milli, bool forceDraw)
 {
     static char current_string[10];
     static int prev_length;
     uint8_t new_length = (milli < TEN_MINUTES) ? 7 : 8;
 
-    draw_laptime(current_string, prev_length, new_length, str, 90, milli);
+    draw_laptime(current_string, prev_length, new_length, str, 90, milli, forceDraw);
 
     strcpy(current_string, str);
     prev_length = new_length;
 }
 
 
-void draw_laptime(char* best_string, int prev_length, int new_length, char* str, int y, uint32_t milli)
+void draw_laptime(char* best_string, int prev_length, int new_length, char* str, int y, uint32_t milli, bool forceDraw)
 {
     //store a copy of the current best laptime to ensure no character writes occur unnecessarily
     int x;
@@ -188,20 +218,28 @@ void draw_laptime(char* best_string, int prev_length, int new_length, char* str,
     if (new_length == 8)
         x = 70;
 
-    //now scan chars and if different set new char
-    int ct;
-    for (ct = 0; ct < new_length; ct++, prevPointer++)
+    //If forceDraw then we must just draw regardless
+    if (forceDraw)
     {
-        if (str[ct] != *prevPointer)
+        display_string_font(str, FONT_UNISPACE_36,x,y);
+    }
+    else
+    {
+        //now scan chars and if different set new char
+        int ct;
+        for (ct = 0; ct < new_length; ct++, prevPointer++)
         {
-            //draw char
-            display_char_font(str[ct], FONT_UNISPACE_36, x + (30 * ct), y);
+            if (str[ct] != *prevPointer)
+            {
+                //draw char
+                display_char_font(str[ct], FONT_UNISPACE_36, x + (30 * ct), y);
+            }
+                
         }
-            
     }
 }
 
-void draw_delta(int16_t delta)
+void draw_delta(int16_t delta, bool forceDraw)
 {
     static char prev_delta_string[10];
     static int16_t prev_delta;
@@ -228,7 +266,7 @@ void draw_delta(int16_t delta)
     int x = 130;
     int y = 170;
 
-    if ((SIGN_MASK & prev_delta) != (SIGN_MASK & delta))
+    if ((SIGN_MASK & prev_delta) != (SIGN_MASK & delta) || forceDraw)
     {
         //Then we need to redraw completely as signs have changed so diff colour
         display_string_font_col(new_delta_string, FONT_UNISPACE_36, x, 170, colour);
@@ -284,23 +322,23 @@ void display_laptimes(void)
                 if (bestTime < MAX_MINUTES_101)
                 {
                     str = milli_to_string(bestTime);
-                    draw_laptime_best(str, bestTime);
+                    draw_laptime_best(str, bestTime, false);
                     free(str);
                } else 
-                    draw_laptime_best("0:00.00", 0);
+                    draw_laptime_best("0:00.00", 0, false);
 
                 //Display current
                 uint32_t currentTime = acData->lapTimes.currentTime;
                 if (currentTime < MAX_MINUTES_101)
                 {
                     str = milli_to_string(currentTime);
-                    draw_laptime_current(str, currentTime);
+                    draw_laptime_current(str, currentTime, false);
                     free(str);
                 } else 
-                    draw_laptime_current("0:00.00", 0);
+                    draw_laptime_current("0:00.00", 0, false);
 
                 //Display delta
-                draw_delta(acData->lapTimes.delta);
+                draw_delta(acData->lapTimes.delta, false);
             } else {
                 //Clear display
                 clear_display_laptimes();
