@@ -263,28 +263,7 @@ void display_register(uint8_t reg)
 
 int display_string_font(char *str, uint8_t font, uint16_t x, uint16_t y)
 {
-    switch (font)
-    {
-        case FONT_UNISPACE_36 :
-            {
-                uint8_t i;
-                for(i=0; str[i]; i++)
-                {
-                    display_char_font(str[i], font, x + (30 * i), y);
-                }
-            }
-            return FONT_WRITE_SUCCESS;
-        case FONT_UNISPACE_14 : 
-            {
-                uint8_t i;
-                for(i=0; str[i]; i++)
-                {
-                    display_char_font(str[i], font, x + (7 * i), y);
-                }
-            }
-        default : 
-            return ERR_NO_SUCH_FONT;
-    }
+    return display_string_font_col(str, font, x, y, display.foreground);
 }
 
 int display_string_font_col(char *str, uint8_t font, uint16_t x, uint16_t y, uint16_t col)
@@ -297,6 +276,24 @@ int display_string_font_col(char *str, uint8_t font, uint16_t x, uint16_t y, uin
                 for(i=0; str[i]; i++)
                 {
                     display_char_font_col(str[i], font, x + (30 * i), y, col);
+                }
+            }
+            return FONT_WRITE_SUCCESS;
+        case FONT_UNISPACE_18:
+            {
+                uint8_t i;
+                for (i=0; str[i];i++)
+                {
+                    display_char_font_col(str[i], font, x+(16*i), y, col);
+                }
+            }
+            return FONT_WRITE_SUCCESS;
+        case FONT_UNISPACE_ITALIC_18:
+            {
+                uint8_t i;
+                for (i=0; str[i];i++)
+                {
+                    display_char_font_col(str[i], font, x+(15*i), y, col);
                 }
             }
             return FONT_WRITE_SUCCESS;
