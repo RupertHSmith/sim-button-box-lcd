@@ -39,6 +39,13 @@ typedef struct {
 	uint16_t rearR;
 } TyreTemp;
 
+typedef struct {
+	uint16_t frontL;
+	uint16_t frontR;
+	uint16_t rearL;
+	uint16_t rearR;
+} TyrePressure;
+
 typedef struct  {
 	uint32_t currentTime;
 	uint32_t lastTime;
@@ -50,6 +57,7 @@ typedef struct {
 	PACKET_TYPE packetType;
 	TyreTemp tyreTemperature;
 	TyreWear tyreWear;
+	TyrePressure TyrePressure;//new addition
 	char tyreCompound[20];
 } ACTyreData;
 
