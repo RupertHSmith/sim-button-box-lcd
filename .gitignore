@@ -1,0 +1,5 @@
+src/Micro-controller-code/*.hex
+src/Micro-controller-code/*.elf
+src/Micro-controller-code/*.lss
+src/Micro-controller-code/*.map
+src/Micro-controller-code/*.sym
