@@ -21,6 +21,8 @@
 #define YELLOW      0xFFE0      
 
 #define FONT_UNISPACE_14 0
+#define FONT_UNISPACE_18 2
+#define FONT_UNISPACE_ITALIC_18 3
 #define FONT_UNISPACE_36 1
 
 #define FONT_WRITE_SUCCESS 0

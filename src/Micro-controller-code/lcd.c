@@ -395,7 +395,106 @@ int display_char_font_col(char c, uint8_t font, uint16_t x, uint16_t y, uint16_t
                 }
             }
             break;
-        
+        case FONT_UNISPACE_18:
+            {
+               //Print char at loc
+                // 4 bytes per column, 15 columns, + 1 ignored byte
+                uint8_t bytesPerChar = 61;
+                uint8_t bytesPerColumn = 4;
+
+                uint8_t horizontalSize = 15;
+                uint8_t verticalSize = 29;
+
+                write_cmd(PAGE_ADDRESS_SET);
+                write_data16(y);
+                write_data16(y + verticalSize);
+
+                // Pointer to start of character data (+ 1 since the first byte is ignored) 
+                PGM_P fdata = Unispace15x29 + bytesPerChar * characterIndex + 1;
+
+                uint16_t writePos;
+                for (writePos = x; writePos < (x + horizontalSize); writePos++)
+                {
+
+                    write_cmd(COLUMN_ADDRESS_SET);
+                    write_data16(writePos);
+                    write_data16(writePos);
+                    write_cmd(MEMORY_WRITE);
+
+
+                    int ct0;
+                    for (ct0 = 0; ct0 < bytesPerColumn; ct0++)
+                    {
+                        
+                        //contains column of bytes where when read right to left reads top to bottom
+                        uint8_t columnBytes = pgm_read_byte(fdata++);
+
+                        //now print this column
+                        int ct;
+                        uint8_t mask = 0x01;
+                        for (ct=0; ct<8; ct++)
+                        {
+                            if ((ct0 * 8 + ct) < verticalSize)
+                            {
+                                write_data16((columnBytes & mask) ? col : display.background);
+                                mask <<= 1;
+                            }                             
+                        }
+                    }
+                    
+                }
+            }
+            break;
+        case FONT_UNISPACE_ITALIC_18:
+            {
+               //Print char at loc
+                // 4 bytes per column, 15 columns, + 1 ignored byte
+                uint8_t bytesPerChar = 61;
+                uint8_t bytesPerColumn = 4;
+
+                uint8_t horizontalSize = 15;
+                uint8_t verticalSize = 29;
+
+                write_cmd(PAGE_ADDRESS_SET);
+                write_data16(y);
+                write_data16(y + verticalSize);
+
+                // Pointer to start of character data (+ 1 since the first byte is ignored) 
+                PGM_P fdata = UnispaceItalic15x29 + bytesPerChar * characterIndex + 1;
+
+                uint16_t writePos;
+                for (writePos = x; writePos < (x + horizontalSize); writePos++)
+                {
+
+                    write_cmd(COLUMN_ADDRESS_SET);
+                    write_data16(writePos);
+                    write_data16(writePos);
+                    write_cmd(MEMORY_WRITE);
+
+
+                    int ct0;
+                    for (ct0 = 0; ct0 < bytesPerColumn; ct0++)
+                    {
+                        
+                        //contains column of bytes where when read right to left reads top to bottom
+                        uint8_t columnBytes = pgm_read_byte(fdata++);
+
+                        //now print this column
+                        int ct;
+                        uint8_t mask = 0x01;
+                        for (ct=0; ct<8; ct++)
+                        {
+                            if ((ct0 * 8 + ct) < verticalSize)
+                            {
+                                write_data16((columnBytes & mask) ? col : display.background);
+                                mask <<= 1;
+                            }                             
+                        }
+                    }
+                    
+                }
+            }
+            break;
         case FONT_UNISPACE_36 :
             {
 
