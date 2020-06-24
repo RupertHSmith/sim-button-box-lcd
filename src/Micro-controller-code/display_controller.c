@@ -10,6 +10,10 @@
 #define AC_DISPLAY_MODE_LAPTIMES 1
 #define AC_DISPLAY_MODE_TYRE_TEMPERATURES 2
 
+#define OPTIMUM_TYRE_TEMPERATURE 85
+#define MAX_TYRE_TEMP 110
+#define MIN_TYRE_TEMP 20
+
 #define MAX_MINUTES_101 6000000
 #define TEN_MINUTES 600000
 #define SIGN_MASK 0x8000 
@@ -27,6 +31,11 @@ uint8_t current_game;
 volatile ACTyreData *acTyreData;
 volatile ACData *acData;
 
+const rectangle tyre_FL = { 90, 148, 14, 108 }; 
+const rectangle tyre_FR = { 172, 230, 14, 108 };
+const rectangle tyre_RL = { 90, 148, 132, 226 };
+const rectangle tyre_RR = { 172, 230, 132, 226 };
+
 int refresh_display(int state);
 int collect_switch_presses(int state);
 void display_laptimes(void);
@@ -37,6 +46,13 @@ void draw_delta(int16_t delta, bool forceDraw);
 void draw_laptime_current(char* str, uint32_t milli, bool forceDraw);
 void draw_laptime_best(char* str, uint32_t milli, bool forceDraw);
 void draw_laptime(char* best_string, int prev_length, int new_length, char* str, int y, uint32_t milli, bool forceDraw);
+void init_tyre_temps_display(void);
+void set_tyre_temperatures(TyreTemp *tyreTemp);
+uint16_t calculate_tyre_colour(uint16_t temperature);
+void set_tyre_wear(TyreWear *tyreWear);
+void set_tyre_pressure(TyrePressure *tyrePressure);
+void init_tyre_wear(void);
+void init_tyre_temps(void);
 
 void receive_packet(const uint8_t* ReportData)
 {
@@ -118,12 +134,15 @@ int refresh_display(int state)
         {
             case DISPLAY_MODE_BLANK:
                 clear_screen();
+                char str[20];
+                sprintf(str, "Size of ACData: %d\nSize of ACTyreData: %d\n", sizeof(ACData), sizeof(ACTyreData));
+                display_string(str);
                 break;
             case AC_DISPLAY_MODE_LAPTIMES: 
                 init_display_laptimes();
                 break;
             case AC_DISPLAY_MODE_TYRE_TEMPERATURES: 
-                clear_screen();
+                init_tyre_temps_display();
                 break;
             default : 
                 break;
@@ -147,8 +166,245 @@ int refresh_display(int state)
     }
 }
 
+void init_tyre_temps_display(void)
+{
+    clear_screen();
+    init_tyre_wear();
+    init_tyre_temps();
+
+
+    //demo draw
+    TyreTemp tyreTemp = {80, 44, 105,88};
+    TyreWear tyreWear = {58, 100, 70, 100};
+    TyreWear tyreWear2 = {59, 44, 15, 32};
+
+    set_tyre_wear(&tyreWear);
+    set_tyre_temperatures(&tyreTemp);
+    set_tyre_wear(&tyreWear2);
+}
+
+void init_tyre_wear(void)
+{
+    TyreWear tyreWear = {0,0,0,0};
+    set_tyre_wear(&tyreWear);
+}
+
+void init_tyre_temps(void)
+{
+    TyreTemp tyreTemp = {0,0,0,0};
+    set_tyre_temperatures(&tyreTemp);
+}
+
+void set_tyre_wear(TyreWear *tyreWear)
+{
+    //all 15px from tyre block
+    static TyreWear currentTyreWear;
+
+    uint16_t tyreWearFL = tyreWear->frontL;
+    uint16_t tyreWearFR = tyreWear->frontR;
+    uint16_t tyreWearRL = tyreWear->rearL;
+    uint16_t tyreWearRR = tyreWear->rearR;
+
+    //Front left
+    if (currentTyreWear.frontL != tyreWearFL)
+    {
+        char tyreWearStr[4];
+        char paddedTyreStr[4];
+
+        sprintf(tyreWearStr, "%u%%", tyreWearFL);
+        sprintf(paddedTyreStr, "%4s", tyreWearStr);
+        display_string_font(paddedTyreStr, FONT_UNISPACE_ITALIC_18, 15, 26);
+        currentTyreWear.frontL = tyreWearFL;
+    }
+
+    //Front right
+    if (currentTyreWear.frontR != tyreWearFR)
+    {
+        char tyreWearStr[4];
+
+        sprintf(tyreWearStr, "%u%%", tyreWearFR);
+        display_string_font(tyreWearStr, FONT_UNISPACE_ITALIC_18, 245, 26);
+        currentTyreWear.frontR = tyreWearFR;
+    }
+    //if prev was a 3 char string (<100) then we need to clear the last char
+    if (currentTyreWear.frontR >= 100)
+    {
+        //Then clear the char
+        rectangle rect = { 290, 305, 26, 55 };
+        fill_rectangle(rect, BLACK);
+    }
+
+    //Rear left
+    if (currentTyreWear.rearL != tyreWearRL)
+    {
+        char tyreWearStr[4];
+        char paddedTyreStr[4];
+
+        sprintf(tyreWearStr, "%u%%", tyreWearRL);
+        sprintf(paddedTyreStr, "%4s", tyreWearStr);
+        display_string_font(paddedTyreStr, FONT_UNISPACE_ITALIC_18, 15, 144);
+        currentTyreWear.rearL = tyreWearRL;
+    }
+
+    //Rear right
+    if (currentTyreWear.rearR != tyreWearRR)
+    {
+        char tyreWearStr[10];
+
+        sprintf(tyreWearStr, "%u%%", tyreWearRR);
+        display_string_font(tyreWearStr, FONT_UNISPACE_ITALIC_18, 245, 144);
+        currentTyreWear.rearR = tyreWearRR;
+    }
+    //if prev was a 3 char string (<100) then we need to clear the last char
+    if (currentTyreWear.rearR >= 100)
+    {
+        //Then clear the char
+        rectangle rect = { 290, 305, 144, 173 };
+        fill_rectangle(rect, BLACK);
+    }
+}
+
+void set_tyre_temperatures(TyreTemp *tyreTemp)
+{
+    static TyreTemp currentTyreTempDisplay;
+
+    //Front left
+    if (tyreTemp->frontL != currentTyreTempDisplay.frontL)
+    {
+        uint16_t tyreColour = calculate_tyre_colour(tyreTemp->frontL);
+        fill_rectangle(tyre_FL, tyreColour);
+
+        display.background = tyreColour;
+
+        char tyreTempStr[3];
+        uint16_t frontLTyreTemp = tyreTemp->frontL;
+        sprintf(tyreTempStr, "%u", frontLTyreTemp);
+
+        if (tyreTemp < 100)
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 104, 47, BLACK);
+        else
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 96, 47, BLACK);
+        display.background = BLACK;
+        currentTyreTempDisplay.frontL = frontLTyreTemp;
+    }
+
+    //Front right
+    if (tyreTemp->frontR != currentTyreTempDisplay.frontR)
+    {
+        uint16_t tyreColour = calculate_tyre_colour(tyreTemp->frontR);
+        fill_rectangle(tyre_FR, tyreColour);
+
+        display.background = tyreColour;
+
+        char tyreTempStr[3];
+        uint16_t frontRTyreTemp = tyreTemp->frontR;
+        sprintf(tyreTempStr, "%u", frontRTyreTemp);
+
+        if (tyreTemp < 100)
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 186, 47, BLACK);
+        else
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 178, 47, BLACK);
+        display.background = BLACK;
+        currentTyreTempDisplay.frontR = frontRTyreTemp;
+    }
+
+    //Rear left
+    if (tyreTemp->rearL != currentTyreTempDisplay.rearL)
+    {
+        uint16_t tyreColour = calculate_tyre_colour(tyreTemp->rearL);
+        fill_rectangle(tyre_RL, tyreColour);
+
+        display.background = tyreColour;
+
+        char tyreTempStr[4];
+        uint16_t rearLTyreTemp = tyreTemp->rearL;
+        sprintf(tyreTempStr, "%u", rearLTyreTemp);
+
+       if (tyreTemp < 100)
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 104, 165, BLACK);
+        else
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 96, 165, BLACK);
+        display.background = BLACK;
+        currentTyreTempDisplay.rearL = rearLTyreTemp;
+    }
+
+    //Rear right
+    if (tyreTemp->rearR != currentTyreTempDisplay.rearR)
+    {
+        uint16_t tyreColour = calculate_tyre_colour(tyreTemp->rearR);
+        fill_rectangle(tyre_RR, tyreColour);
+
+        display.background = tyreColour;
+
+        char tyreTempStr[3];
+        uint16_t rearRTyreTemp = tyreTemp->rearR;
+        sprintf(tyreTempStr, "%u",tyreTemp->rearR);
+
+        if (tyreTemp < 100)
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 186, 165, BLACK);
+        else
+            display_string_font_col(tyreTempStr,FONT_UNISPACE_ITALIC_18, 178, 165, BLACK);
+        display.background = BLACK;
+        currentTyreTempDisplay.rearR = tyreTemp->rearR;
+    }
+}
+
+uint16_t calculate_tyre_colour(uint16_t temperature)
+{
+    uint16_t rVal;
+    uint16_t bVal;
+    uint16_t gVal;
+
+    float optToMaxRatio = (float) (temperature - OPTIMUM_TYRE_TEMPERATURE) / (float) (MAX_TYRE_TEMP - OPTIMUM_TYRE_TEMPERATURE);
+    float minToOptRatio = (float) (temperature - MIN_TYRE_TEMP) / (float) (OPTIMUM_TYRE_TEMPERATURE - MIN_TYRE_TEMP);
+
+    //Red value
+    if (temperature >= MAX_TYRE_TEMP)
+        rVal = 0x1F << 11;
+    else if (temperature >= OPTIMUM_TYRE_TEMPERATURE)
+    {
+        rVal = (uint16_t) (optToMaxRatio * 0x1F);
+        rVal <<= 11;
+    }
+    else
+    {
+        rVal = 0;
+    }
+
+    //Green value
+    if (temperature >= OPTIMUM_TYRE_TEMPERATURE && temperature <= MAX_TYRE_TEMP)
+    {
+        //Then g value is full at optimum, zero at max
+        gVal = (uint16_t) ((1 - optToMaxRatio) * 0x3F);
+        gVal <<= 5;
+    }
+    else if (temperature < OPTIMUM_TYRE_TEMPERATURE && temperature >= MIN_TYRE_TEMP)
+    {
+        gVal = (uint16_t) (minToOptRatio * 0x3F);
+        gVal <<= 5;
+    }
+    else
+    {
+        gVal = 0;
+    }
+
+    //Blue value
+    if (temperature <= MIN_TYRE_TEMP)
+        bVal = 0x1F;
+    else if (temperature < OPTIMUM_TYRE_TEMPERATURE)
+    {
+        bVal = (uint16_t) ((1 - minToOptRatio) * 0x1F);
+    }
+    else
+    {
+        bVal = 0;
+    }
+    return rVal | gVal | bVal;
+}
+
 void init_display_laptimes(void)
 {
+    clear_screen();
     rectangle rect;
     rect.left = 10;
     rect.right = 310;
@@ -158,7 +414,6 @@ void init_display_laptimes(void)
 
     display_string_font("Best", FONT_UNISPACE_14, 10, 53);
     display_string_font("Current", FONT_UNISPACE_14, 10, 125);
-    //clear_display_laptimes();
     clear_display_laptimes();
 }
 
