@@ -57,7 +57,7 @@ typedef struct {
 	PACKET_TYPE packetType;
 	TyreTemp tyreTemperature;
 	TyreWear tyreWear;
-	TyrePressure TyrePressure;//new addition
+	TyrePressure tyrePressure;//new addition
 	char tyreCompound[20];
 } ACTyreData;
 
