@@ -36,7 +36,13 @@ int DisplayController::SendData(const ACData &acData)
 
 int DisplayController::SendData(const ACTyreData &tyreData)
 {
-	return 0;
+	int res;
+
+	unsigned char* packetP = (unsigned char*)&tyreData;
+
+	res = hid_write(hidDevice, packetP, 65);
+
+	return res;
 }
 
 DisplayController::~DisplayController()

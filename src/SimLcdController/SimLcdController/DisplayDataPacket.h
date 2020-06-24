@@ -33,6 +33,13 @@ typedef struct {
 	uint16_t frontR;
 	uint16_t rearL;
 	uint16_t rearR;
+} TyrePressure;
+
+typedef struct {
+	uint16_t frontL;
+	uint16_t frontR;
+	uint16_t rearL;
+	uint16_t rearR;
 } TyreTemp;
 
 typedef struct {
@@ -47,6 +54,7 @@ typedef struct {
 	PACKET_TYPE packetType;
 	TyreTemp tyreTemperature;
 	TyreWear tyreWear;
+	TyrePressure tyrePressure;
 	char tyreCompound[20];
 } ACTyreData;
 

@@ -13,9 +13,34 @@ AcSDKDataReceiver::~AcSDKDataReceiver()
 	
 }
 
-void AcSDKDataReceiver::SendDataToDisplay(const ACData &acData)
+void AcSDKDataReceiver::SendDataToDisplay(const ACData &acData, const ACTyreData &acTyreData)
 {
 	displayController.SendData(acData);
+	displayController.SendData(acTyreData);
+}
+
+ACTyreData AcSDKDataReceiver::ConvertToACTyreData(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData, float delta)
+{
+	ACTyreData acTyreData;
+	acTyreData.packetType = AC_TYRE_DATA;
+	//tyre temps
+	acTyreData.tyreTemperature.frontL = static_cast<uint16_t>(physicsData.tyreCoreTemperature[0]);
+	acTyreData.tyreTemperature.frontR = static_cast<uint16_t>(physicsData.tyreCoreTemperature[1]);
+	acTyreData.tyreTemperature.rearL = static_cast<uint16_t>(physicsData.tyreCoreTemperature[2]);
+	acTyreData.tyreTemperature.rearR = static_cast<uint16_t>(physicsData.tyreCoreTemperature[3]);
+	//tyre wear (this may need to be multiplied by 100)
+	acTyreData.tyreWear.frontL = static_cast<uint16_t>(physicsData.tyreWear[0]);
+	acTyreData.tyreWear.frontR = static_cast<uint16_t>(physicsData.tyreWear[1]);
+	acTyreData.tyreWear.rearL = static_cast<uint16_t>(physicsData.tyreWear[2]);
+	acTyreData.tyreWear.rearR = static_cast<uint16_t>(physicsData.tyreWear[3]);
+	//tyre pressure
+	acTyreData.tyrePressure.frontL = static_cast<uint16_t>(physicsData.wheelsPressure[0]);
+	acTyreData.tyrePressure.frontR = static_cast<uint16_t>(physicsData.wheelsPressure[1]);
+	acTyreData.tyrePressure.rearL = static_cast<uint16_t>(physicsData.wheelsPressure[2]);
+	acTyreData.tyrePressure.rearR = static_cast<uint16_t>(physicsData.wheelsPressure[3]);
+	//for now we'll ignore tyre compound..
+	return acTyreData;
+
 }
 
 ACData AcSDKDataReceiver::ConvertToACData(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData, float delta)

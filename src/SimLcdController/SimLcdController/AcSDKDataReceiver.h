@@ -60,7 +60,8 @@ private:
 	//int delta;
 	float UpdateDelta(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData);
 	ACData ConvertToACData(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData, float delta);
-	void SendDataToDisplay(const ACData &acData);
+	ACTyreData ConvertToACTyreData(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData, float delta);
+	void SendDataToDisplay(const ACData &acData, const ACTyreData &acTyreData);
 	void ResetSamples();
 	void ResetBest();
 
