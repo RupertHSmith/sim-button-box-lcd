@@ -169,9 +169,28 @@ int refresh_display(int state)
 
 void display_tyre_data(void)
 {
-    set_tyre_pressure(&acTyreData->tyrePressure, false);
-    set_tyre_temperatures(&acTyreData->tyreTemperature, false);
-    set_tyre_wear(&acTyreData->tyreWear, false);
+
+    if (current_game == ASSETTO_CORSA)
+    {
+        //Now display assetto corsa laptimes
+        if (ac_data_initialised && ac_tyre_data_initialised)
+        {
+            static uint8_t prevAcStatus;
+            //If ac running..
+            if (acData->status == AC_LIVE)
+            {
+                set_tyre_pressure(&acTyreData->tyrePressure, false);
+                set_tyre_temperatures(&acTyreData->tyreTemperature, false);
+                set_tyre_wear(&acTyreData->tyreWear, false);
+            }
+            else if (prevAcStatus == AC_LIVE)
+            {
+                //init displays
+                init_tyre_temps_display();
+            }
+            prevAcStatus = acData->status;
+        }
+    }
 }
 
 void init_tyre_temps_display(void)
