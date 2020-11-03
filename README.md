@@ -1,4 +1,4 @@
-# sim-button-box-lcd
+# Sim-racing button box with LCD display
 This project has two main components:-
 
 A button box which is connected as a standard HID USB joystick device with no drivers required. Buttons can be mapped ingame as required.
