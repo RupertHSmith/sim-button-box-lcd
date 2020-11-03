@@ -9,7 +9,8 @@ The microcontroller used is an Atmel AT90USB1286. The LUFA library has been used
 
 ![image](https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/device/IMG_20201103_173257.jpg)
 ![image](https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/device/IMG_20201103_173328.jpg)
-<img src="https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/app/Screenshot_20201103-173508.jpg" width="128"><img src="https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/app/Screenshot_20201103-173520.jpg" width="48">
+
+<img src="https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/app/Screenshot_20201103-173508.jpg" width="200"><img src="https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/app/Screenshot_20201103-173520.jpg" width="200">
 
 ![image](https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/app/Screenshot_20201103-173533.jpg)
 ![image](https://github.com/RupertHSmith/sim-button-box-lcd/blob/master/img/app/Screenshot_20201103-173539.jpg)
