@@ -2,6 +2,7 @@
 #include "AcSDKDataReceiver.h"
 #include <iostream>
 #include <string>
+#include <cmath>
 
 AcSDKDataReceiver::AcSDKDataReceiver()
 {
@@ -29,10 +30,13 @@ ACTyreData AcSDKDataReceiver::ConvertToACTyreData(const SPageFilePhysics &physic
 	acTyreData.tyreTemperature.rearL = static_cast<uint16_t>(physicsData.tyreCoreTemperature[2]);
 	acTyreData.tyreTemperature.rearR = static_cast<uint16_t>(physicsData.tyreCoreTemperature[3]);
 	//tyre wear (this may need to be multiplied by 100)
-	acTyreData.tyreWear.frontL = static_cast<uint16_t>(physicsData.tyreWear[0]);
-	acTyreData.tyreWear.frontR = static_cast<uint16_t>(physicsData.tyreWear[1]);
-	acTyreData.tyreWear.rearL = static_cast<uint16_t>(physicsData.tyreWear[2]);
-	acTyreData.tyreWear.rearR = static_cast<uint16_t>(physicsData.tyreWear[3]);
+
+
+
+	acTyreData.tyreWear.frontL = ConvertTyreWear(physicsData.tyreWear[0]);
+	acTyreData.tyreWear.frontR = ConvertTyreWear(physicsData.tyreWear[1]);
+	acTyreData.tyreWear.rearL = ConvertTyreWear(physicsData.tyreWear[2]);
+	acTyreData.tyreWear.rearR = ConvertTyreWear(physicsData.tyreWear[3]);
 	//tyre pressure
 	acTyreData.tyrePressure.frontL = static_cast<uint16_t>(physicsData.wheelsPressure[0]);
 	acTyreData.tyrePressure.frontR = static_cast<uint16_t>(physicsData.wheelsPressure[1]);
@@ -40,6 +44,16 @@ ACTyreData AcSDKDataReceiver::ConvertToACTyreData(const SPageFilePhysics &physic
 	acTyreData.tyrePressure.rearR = static_cast<uint16_t>(physicsData.wheelsPressure[3]);
 	//for now we'll ignore tyre compound..
 	return acTyreData;
+
+}
+
+uint16_t AcSDKDataReceiver::ConvertTyreWear(float wear)
+{
+	float tyrewearF = 100 * ((wear - 94.F) / 6.f);
+
+	if (tyrewearF <= 0)
+		return 0;
+	return static_cast<uint16_t>(std::round(tyrewearF));
 
 }
 
@@ -101,7 +115,9 @@ void AcSDKDataReceiver::ReceiveUpdate(const SPageFilePhysics &physicsData, const
 
 	//SEND DATA TO DEVICE
 	ACData acData = ConvertToACData(physicsData, graphicsData, staticData, delta);
-	SendDataToDisplay(acData);
+	ACTyreData acTyreData = ConvertToACTyreData(physicsData, graphicsData, staticData, dataSetRecorded);
+	//std::cout << acTyreData.tyreWear.rearL << "   AC:   " << physicsData.tyreWear[3] << std::endl;
+	SendDataToDisplay(acData, acTyreData);
 }
 
 void AcSDKDataReceiver::ResetBest()

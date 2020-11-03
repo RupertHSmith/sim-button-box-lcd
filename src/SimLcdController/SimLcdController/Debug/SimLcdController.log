@@ -1,9 +1,1 @@
-﻿  ACTelemetryProcessor.cpp
-  AcSDKDataReceiver.cpp
-f:\github\sim-button-box-lcd\pc-side-code\simlcdcontroller\simlcdcontroller\acsdkdatareceiver.cpp(29): warning C4244: '=': conversion from 'const float' to 'uint8_t', possible loss of data
-f:\github\sim-button-box-lcd\pc-side-code\simlcdcontroller\simlcdcontroller\acsdkdatareceiver.cpp(30): warning C4244: '=': conversion from 'const float' to 'uint8_t', possible loss of data
-f:\github\sim-button-box-lcd\pc-side-code\simlcdcontroller\simlcdcontroller\acsdkdatareceiver.cpp(31): warning C4244: '=': conversion from 'const float' to 'uint8_t', possible loss of data
-  DisplayController.cpp
-  SimLcdController.cpp
-  Generating Code...
-  SimLcdController.vcxproj -> F:\GitHub\sim-button-box-lcd\PC-side-code\SimLcdController\Debug\SimLcdController.exe
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.Cpp.WindowsSDK.targets(46,5): error MSB8036: The Windows SDK version 10.0.17763.0 was not found. Install the required version of Windows SDK or change the SDK version in the project property pages or by right-clicking the solution and selecting "Retarget solution".

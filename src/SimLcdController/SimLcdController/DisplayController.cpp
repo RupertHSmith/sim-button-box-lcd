@@ -1,4 +1,5 @@
 #include "DisplayController.h"
+#include <iostream>
 
 DisplayController::DisplayController()
 {

@@ -58,6 +58,7 @@ private:
 	int recordedBest;
 	//int previousSamplePosition;
 	//int delta;
+	uint16_t ConvertTyreWear(float wear);
 	float UpdateDelta(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData);
 	ACData ConvertToACData(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData, float delta);
 	ACTyreData ConvertToACTyreData(const SPageFilePhysics &physicsData, const SPageFileGraphic &graphicsData, const SPageFileStatic &staticData, float delta);
